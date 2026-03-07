@@ -32,7 +32,7 @@ try {
     $stmt->execute([':email' => $email]);
     $user = $stmt->fetch();
 
-    // ユーザー存在確認 + パスワード検証
+    // ユーザー存在確認 + パスワード検証（認証）
     if (!$user || !password_verify($password, $user['password_hash'])) {
         $_SESSION['flash_error'] = 'メールアドレスまたはパスワードが違います。';
         header('Location: login.php');
