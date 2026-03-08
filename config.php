@@ -1,55 +1,38 @@
 <?php
-// .env ファイルを読み込み、KEY=VALUE を環境変数へ反映する
-function loadDotEnv(string $path): void
+// .env を組み込み関数で読み込み、連想配列として返す
+function loadEnvFile(string $path): array
 {
-    static $loaded = false;
-    if ($loaded || !is_file($path)) {
-        return;
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
     }
 
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    if ($lines === false) {
-        return;
+    if (!is_file($path)) {
+        $cache = [];
+        return $cache;
     }
 
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#')) {
-            continue;
-        }
-
-        $parts = explode('=', $line, 2);
-        if (count($parts) !== 2) {
-            continue;
-        }
-
-        $key = trim($parts[0]);
-        $value = trim($parts[1]);
-
-        // "value" や 'value' のクォートを外す
-        if ((str_starts_with($value, '"') && str_ends_with($value, '"')) ||
-            (str_starts_with($value, "'") && str_ends_with($value, "'"))) {
-            $value = substr($value, 1, -1);
-        }
-
-        putenv($key . '=' . $value);
-        $_ENV[$key] = $value;
-        $_SERVER[$key] = $value;
-    }
-
-    $loaded = true;
+    $parsed = parse_ini_file($path, false, INI_SCANNER_RAW);
+    $cache = is_array($parsed) ? $parsed : [];
+    return $cache;
 }
 
 // 環境変数を読み取り、未設定時はデフォルト値を返すヘルパー
 function envOrDefault(string $key, string $default): string
 {
-    loadDotEnv(__DIR__ . '/.env');
-
-    $value = getenv($key);
-    if ($value === false || $value === '') {
-        return $default;
+    // 1) 実行環境の環境変数 2) .env 3) デフォルト値 の順で採用
+    $envValue = getenv($key);
+    if ($envValue !== false && $envValue !== '') {
+        return $envValue;
     }
-    return $value;
+
+    $fileValues = loadEnvFile(__DIR__ . '/.env');
+    $fileValue = $fileValues[$key] ?? '';
+    if ($fileValue !== '') {
+        return (string)$fileValue;
+    }
+
+    return $default;
 }
 
 // 例外ベースでPDOエラーを扱うための設定をまとめた関数
