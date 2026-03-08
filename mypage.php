@@ -20,10 +20,6 @@ $email = $_SESSION['user_email'] ?? '';
     <h1>マイページ</h1>
     <p><strong>ようこそ、<?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?> さん</strong></p>
     <p>ログイン中のメールアドレス: <?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?></p>
-
-    <div class="actions">
-      <a class="btn-link" href="logout.php">ログアウト</a>
-    </div>
   </main>
 </body>
 </html>
