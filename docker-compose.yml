@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    environment:
+      DB_DRIVER: sqlite
+      DB_PATH: /workspace/data/app.sqlite
+    command: >
+      sh -lc "php init_db.php &&
+      php -S 0.0.0.0:8000 -t /workspace"
+    ports:
+      - "8000:8000"
